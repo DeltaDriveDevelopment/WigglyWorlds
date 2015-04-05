@@ -26,10 +26,10 @@
        </repository>
    </repositories>
    <dependencies>
-       <dependency>
-           <groupId>org.bukkit</groupId>
-           <artifactId>craftbukkit</artifactId>
-           <version>1.7.9-R0.3-20140603.002405-1</version>
+   	   <dependency>
+   	       <groupId>org.bukkit</groupId>
+           <artifactId>bukkit</artifactId>
+           <version>1.7.9-R0.2</version>
            <type>jar</type>
            <scope>provided</scope>
        </dependency>
@@ -39,5 +39,10 @@
            <version>5.6.3</version>
            <scope>compile</scope>
        </dependency>
+       <dependency>
+		   <groupId>commons-io</groupId>
+		   <artifactId>commons-io</artifactId>
+		   <version>2.4</version>
+	   </dependency>
    </dependencies>
 </project>

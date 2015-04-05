@@ -27,6 +27,7 @@ public class Animation implements Serializable {
 	private LocationPack lp1, lp2;
 	private String name;
 	private int frameCount;
+	private boolean hasFrames;
 	private String animDirPath;
 	private File animDir;
 	private transient WorldEditPlugin wep = WigglyWorlds.getWep();
@@ -51,6 +52,26 @@ public class Animation implements Serializable {
 			return null;
 		}
 		
+	}
+	
+	/**
+	 * Creates a new copy of the provided animation with the given name
+	 * @param name
+	 * @return
+	 */
+	public static Animation createAnimation(String toCopyName, String name){
+		
+		return null;
+	}
+	
+	/**
+	 * creates a copy of the provided animation with the given name
+	 * @param anim
+	 * @return
+	 */
+	public static Animation createAnimation(Animation anim, String name){
+		
+		return null;
 	}
 	
 	/**
@@ -86,7 +107,8 @@ public class Animation implements Serializable {
 		lp2 = new LocationPack(loc2);
 		this.name = name;
 		this.frameCount = 0;
-
+		hasFrames = false;
+		
 		this.animDirPath = WigglyWorlds.getP().getDataFolder().getAbsolutePath() + File.separator
 				+ name;
 
@@ -106,6 +128,9 @@ public class Animation implements Serializable {
 		try {
 			tm.saveTerrain(newFrame, lp1.unpack(), lp2.unpack());
 			frameCount++;
+			if(frameCount > 0){
+				hasFrames = true;
+			}
 			return true;
 		} catch (FilenameException | DataException | IOException e) {
 			e.printStackTrace();
@@ -117,17 +142,27 @@ public class Animation implements Serializable {
 	/**
 	 * Plays the animation once through, leaving blocks in the state of the final frame
 	 */
-	public void play() {
-		new PlayTask(frameCount, animDirPath, lp1.unpack().getWorld()).runTaskTimer(WigglyWorlds.getP(),
+	public void play(boolean reversed) {
+		new PlayTask(frameCount, animDirPath, lp1.unpack().getWorld(), reversed).runTaskTimer(WigglyWorlds.getP(),
 				20, 5);
 	}
 	
 	/**
-	 * Plays the animation once thorugh and resets to the 0 frame when complete
+	 * Plays the animation once through and resets to the 0 frame when complete
 	 */
-	public void playAndReset() {
-		new PlayAndResetTask(frameCount, animDirPath, lp1.unpack().getWorld()).runTaskTimer(WigglyWorlds.getP(),
+	public void playAndReset(boolean reversed) {
+		new PlayAndResetTask(frameCount, animDirPath, lp1.unpack().getWorld(), reversed).runTaskTimer(WigglyWorlds.getP(),
 				20, 5);
+	}
+	
+	/**
+	 * 
+	 * @param player Player to play the animation for
+	 */
+	public void playprivate(Player player, boolean reversed) {
+		// TODO Auto-generated method stub
+		new PrivatePlayTask(frameCount - 1, animDirPath, lp1.unpack().getWorld(), player, reversed).runTaskTimer(WigglyWorlds.getP(),
+				20, 5);		
 	}
 
 	/**
@@ -136,7 +171,7 @@ public class Animation implements Serializable {
 	public void reset() {
 		new BukkitRunnable() {
 			File frame = new File(animDirPath + File.separator + "0");
-			TerrainManager tm = new TerrainManager(wep, lp1.unpack().getWorld());
+			TerrainManager tm = new TerrainManager(WigglyWorlds.getWep(), lp1.unpack().getWorld());
 			
 			@Override
 			public void run() {
@@ -164,12 +199,9 @@ public class Animation implements Serializable {
 	public File getAnimDir() {
 		return animDir;
 	}
-
-	public void playprivate(Player player) {
-		// TODO Auto-generated method stub
-		new PrivatePlayTask(frameCount, animDirPath, lp1.unpack().getWorld(), player).runTaskTimer(WigglyWorlds.getP(),
-				20, 5);
-		
+	
+	public boolean hasFrames(){
+		return hasFrames;
 	}
 	
 }

@@ -12,7 +12,7 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 public final class WigglyWorlds extends JavaPlugin {
 
 	private static WigglyWorlds p;
-	private static String prefix = ChatColor.DARK_PURPLE + "[" + ChatColor.GOLD + "WigglyWorlds" + ChatColor.DARK_PURPLE + "]" + ChatColor.DARK_RED + " ";
+	private static String prefix = ChatColor.GREEN + "[" + ChatColor.WHITE + "WigglyWorlds" + ChatColor.GREEN + "]" + ChatColor.DARK_GREEN + " ";
 	private static WorldEditPlugin wep;
 
 	/*

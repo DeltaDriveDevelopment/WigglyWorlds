@@ -77,7 +77,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				loc2.getBlock().setType(Material.LAPIS_BLOCK);
 				player.sendMessage(p.getPrefix() + "Animation " + name
 						+ ", successfully created");
-				player.sendMessage(p.getPrefix() + "Use /addframe " + name
+				player.sendMessage(p.getPrefix() + "Use /ww addframe " + name
 						+ " to add a frame to your animation!");
 				return true;
 			} else { // if the animation creation failed, either by IO or
@@ -140,7 +140,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Animation anim = Animation.getAnimation(name);
 
 			if (anim != null) {
-				anim.play();
+				anim.play(true);
 				player.sendMessage(p.getPrefix() + "Starting animation " + name
 						+ "!");
 				return true;
@@ -168,7 +168,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Animation anim = Animation.getAnimation(name);
 
 			if (anim != null) {
-				anim.playAndReset();
+				anim.playAndReset(false);
 				player.sendMessage(p.getPrefix() + "Starting animation " + name
 						+ "!");
 				return true;
@@ -284,7 +284,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 						anim.getAnimDir().delete();
 					}
 					Animation.animations.remove(anim);
-					player.removeMetadata("delAnim", p);
+					player.removeMetadata("delAnim" + name, p);
 					player.sendMessage(p.getPrefix() + "Animation " + name + " has been deleted!");
 
 					return true;
@@ -331,7 +331,35 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Animation anim = Animation.getAnimation(name);
 
 			if (anim != null) {
-				anim.playprivate(player);
+				anim.playprivate(player, false);
+				player.sendMessage(p.getPrefix() + "Starting animation " + name
+						+ "!");
+				return true;
+			} else {
+				player.sendMessage(p.getPrefix() + "Animaiton " + name
+						+ " not found. Did you spell it correctly?");
+				return true;
+			}
+		}
+		
+		if(args[0].equalsIgnoreCase("playprivatereversed")){
+			if (args.length < 2) {
+				player.sendMessage(p.getPrefix()
+						+ "You must provide the name of the animation to play!");
+				return true;
+			} else if (args.length > 2) {
+				player.sendMessage(p.getPrefix() + "Too many arguments!");
+				player.sendMessage(p.getPrefix()
+						+ "Usage: /ww playprivate <animation name>");
+				return true;
+			}
+
+			String name = args[1];
+
+			Animation anim = Animation.getAnimation(name);
+
+			if (anim != null) {
+				anim.playprivate(player, true);
 				player.sendMessage(p.getPrefix() + "Starting animation " + name
 						+ "!");
 				return true;
@@ -347,16 +375,16 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
 	private void sendHelpMessage(Player player) {
 		player.sendMessage(p.getPrefix() + "Commands:");
-		player.sendMessage(ChatColor.DARK_RED + "/ww: Displays this help message");
-		player.sendMessage(ChatColor.DARK_RED + "/ww create <name>: Creates a new animaiton with the name <name>");
-		player.sendMessage(ChatColor.DARK_RED + "/ww addFrame <Animation name>: Adds a new frame to the given animation");
-		player.sendMessage(ChatColor.DARK_RED + "/ww delFrame <Animation name>: Deletes the last frame added to the given animation");
-		player.sendMessage(ChatColor.DARK_RED + "/ww lsit: Lists all created animations and their frame lengths");
-		player.sendMessage(ChatColor.DARK_RED + "/ww play <name>: Plays the given animation");
-		player.sendMessage(ChatColor.DARK_RED + "/ww playandreset <name>: Plays the given animation and resets it to the first frame when complete");
-		player.sendMessage(ChatColor.DARK_RED + "/ww playPrivate <name>: Plays the animation, but it is only visible to you");
-		player.sendMessage(ChatColor.DARK_RED + "/ww reset <name>: Resets the animation stage to the state of the first frame");
-		player.sendMessage(ChatColor.DARK_RED + "/ww delete <Animation name>: Deletes the given animation (requires confirmation)");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww: Displays this help message");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww create <name>: Creates a new animaiton with the name <name>");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww addFrame <Animation name>: Adds a new frame to the given animation");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww delFrame <Animation name>: Deletes the last frame added to the given animation");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww lsit: Lists all created animations and their frame lengths");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww play <name>: Plays the given animation");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww playandreset <name>: Plays the given animation and resets it to the first frame when complete");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww playPrivate <name>: Plays the animation, but it is only visible to you");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww reset <name>: Resets the animation stage to the state of the first frame");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww delete <Animation name>: Deletes the given animation (requires confirmation)");
 		
 	}
 }
