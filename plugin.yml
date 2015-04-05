@@ -1,0 +1,9 @@
+name: WigglyWorlds
+main: com.deltadrivedevelopment.wigglyWorlds.WigglyWorlds
+version: 1
+depend: [WorldEdit]
+commands:
+  WigglyWorlds:
+    description: Base WigglyWorlds command
+    aliases: [ww, wiggleworld]
+    usage: /WigglyWorlds, /ww
