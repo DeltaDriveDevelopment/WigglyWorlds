@@ -12,7 +12,9 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 public final class WigglyWorlds extends JavaPlugin {
 
 	private static WigglyWorlds p;
-	private static String prefix = ChatColor.GREEN + "[" + ChatColor.WHITE + "WigglyWorlds" + ChatColor.GREEN + "]" + ChatColor.DARK_GREEN + " ";
+	private static String prefix = ChatColor.GREEN + "[" + ChatColor.WHITE
+			+ "WigglyWorlds" + ChatColor.GREEN + "]" + ChatColor.DARK_GREEN
+			+ " ";
 	private static WorldEditPlugin wep;
 
 	/*
@@ -22,8 +24,8 @@ public final class WigglyWorlds extends JavaPlugin {
 	public void onEnable() {
 		registerListeners();
 		registerCommands();
-		loadFiles();
 		getDataFolder().mkdir();
+		loadFiles();
 		p = this;
 		wep = (WorldEditPlugin) Bukkit.getPluginManager()
 				.getPlugin("WorldEdit");
@@ -32,14 +34,14 @@ public final class WigglyWorlds extends JavaPlugin {
 					.severe("No world edit plugin found, disabling plugin");
 			Bukkit.getPluginManager().disablePlugin(this);
 		}
-		
+
 		getLogger().info("World edit found, wep is not null");
 	}
 
 	private void loadFiles() {
 		// TODO Auto-generated method stub
-		File file = new File(getDataFolder().getAbsolutePath()
-				+ File.separator + "animations.bin");
+		File file = new File(getDataFolder().getAbsolutePath() + File.separator
+				+ "animations.bin");
 		if (!(file.exists())) {
 			try {
 				file.createNewFile();
@@ -49,17 +51,24 @@ public final class WigglyWorlds extends JavaPlugin {
 			}
 			return;
 		}
-		
-		try {
-			Animation.animations = SLAPI.load(getDataFolder().getAbsolutePath()
-					+ File.separator + "animations.bin");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			getServer()
-					.getLogger()
-					.info(prefix
-							+ "Failed to load animations, try a reload/restart.");
+
+		File animations = new File(getDataFolder().getAbsolutePath()
+				+ File.separator + "animations.bin");
+
+		if (animations.length() != 0) {
+			try {
+				Animation.animations = SLAPI.load(getDataFolder()
+						.getAbsolutePath() + File.separator + "animations.bin");
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				getServer()
+						.getLogger()
+						.info(prefix
+								+ "Failed to load animations, try a reload/restart.");
+			}
+		} else {
+			getLogger().info("No animations created yet");
 		}
 
 	}
@@ -68,7 +77,8 @@ public final class WigglyWorlds extends JavaPlugin {
 		// TODO Auto-generated method stub
 		getCommand("WigglyWorlds").setExecutor(
 				new WigglyWorldsCommandExecutor(this, getWep()));
-		getCommand("WigglyWorlds").setTabCompleter(new WigglyWorldsTabCompleter(this));
+		getCommand("WigglyWorlds").setTabCompleter(
+				new WigglyWorldsTabCompleter(this));
 	}
 
 	private void registerListeners() {
@@ -87,7 +97,7 @@ public final class WigglyWorlds extends JavaPlugin {
 	private void saveFiles() {
 		// TODO Auto-generated method stub
 		if (!(Animation.animations.isEmpty())) {
-			
+
 			try {
 				SLAPI.save(Animation.animations, getDataFolder()
 						.getAbsolutePath() + File.separator + "animations.bin");

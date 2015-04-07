@@ -226,8 +226,9 @@ public class Animation implements Serializable {
 		// TODO Auto-generated method stub
 
 		List<String> result = new ArrayList<>();
+		
 		if (animations.isEmpty()) {
-			return null;
+			result.add("");
 		} else {
 			for (Animation anim : animations) {
 				result.add(anim.getName().toLowerCase());

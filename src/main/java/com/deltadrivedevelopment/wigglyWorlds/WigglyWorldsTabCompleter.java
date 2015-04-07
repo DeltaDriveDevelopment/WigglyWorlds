@@ -23,7 +23,7 @@ public class WigglyWorldsTabCompleter implements TabCompleter {
 		// TODO Auto-generated method stub
 
 		ArrayList<String> result = new ArrayList<>();
-
+		
 		if (args.length == 0) {
 			result.addAll(WigglyWorldsCommandExecutor.getCommands());
 		} else if (args.length == 1) {
@@ -31,9 +31,10 @@ public class WigglyWorldsTabCompleter implements TabCompleter {
 
 			// Remove all string that don't start the same as what is currently
 			// typed, if what is currently typed is not empty
+			ArrayList<String> temp = new ArrayList<>(result);
 			if (!args[0].equalsIgnoreCase("")) {
-				for (String string : result) {
-					if (!string.startsWith(args[0])) {
+				for (String string : temp) {
+					if (!(string.startsWith(args[0]))) {
 						result.remove(string);
 					}
 				}
@@ -44,15 +45,23 @@ public class WigglyWorldsTabCompleter implements TabCompleter {
 			
 			result.addAll(Animation.getAnimationNames());
 			
-			if (!args[1].equalsIgnoreCase("")) {
-				for (String string : result) {
+			ArrayList<String> temp = new ArrayList<>(result);
+			
+			if (!(args[1].equalsIgnoreCase(""))) {
+				for (String string : temp) {
 					if (!string.startsWith(args[1])) {
 						result.remove(string);
 					}
 				}
 			}
-		} else if (args.length == 3) {
+			
+			if(result.size() == 1 && result.get(0).equalsIgnoreCase("")){
+				sender.sendMessage(p.getPrefix() + "You have not created any animations yet. Try making one by selecting an area and using /ww create <name>");
+			}
+		} else if (args.length == 3 && (args[1].contains("play"))) {
 			result.addAll(Arrays.asList("T", "F"));
+		} else {
+			result.add("");
 		}
 
 		return result;
