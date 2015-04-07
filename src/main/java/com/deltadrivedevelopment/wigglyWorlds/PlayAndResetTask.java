@@ -37,7 +37,7 @@ public class PlayAndResetTask extends BukkitRunnable {
 		boolean test;
 
 		if (reverse) {
-			test = counter >= frames;
+			test = counter >= frames - 1;
 		} else {
 			test = counter < frames;
 		}

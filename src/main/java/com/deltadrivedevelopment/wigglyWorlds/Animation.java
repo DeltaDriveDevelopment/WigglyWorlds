@@ -178,7 +178,7 @@ public class Animation implements Serializable {
 	 */
 	public void playprivate(Player player, boolean reversed) {
 		// TODO Auto-generated method stub
-		new PrivatePlayTask(frameCount - 1, animDirPath, lp1.unpack()
+		new PrivatePlayTask(frameCount, animDirPath, lp1.unpack()
 				.getWorld(), player, reversed).runTaskTimer(
 				WigglyWorlds.getP(), 20, 5);
 	}

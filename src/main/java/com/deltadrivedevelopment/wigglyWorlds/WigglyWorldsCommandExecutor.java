@@ -46,6 +46,15 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 
+		
+		
+		/*************************************
+		 * 
+		 * 
+		 * CREATE
+		 * 
+		 * 
+		 *************************************/
 		if (args[0].equalsIgnoreCase("create")) {
 
 			// check arguments
@@ -125,6 +134,15 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				return true;
 			}
 		}
+		
+		
+		/*************************************
+		 * 
+		 * 
+		 * PLAY
+		 * 
+		 * 
+		 *************************************/
 
 		if (args[0].equalsIgnoreCase("play")) {
 
@@ -132,19 +150,33 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				player.sendMessage(p.getPrefix()
 						+ "You must provide the name of the animation to play!");
 				return true;
-			} else if (args.length > 2) {
+			} else if (args.length > 3) {
 				player.sendMessage(p.getPrefix() + "Too many arguments!");
 				player.sendMessage(p.getPrefix()
-						+ "Usage: /ww play <animation name>");
+						+ "Usage: /ww play <animation name> [T, F] or use /ww play help for more info");
 				return true;
 			}
-
+			
+			if(args[1].equalsIgnoreCase("help")){
+				player.sendMessage(p.getPrefix() + "Play: /ww play <animation name> [T, F]");
+				player.sendMessage(ChatColor.DARK_GREEN + "Plays the named animation. The animation name is required.");
+				player.sendMessage(ChatColor.DARK_GREEN + "[T, F] is optional, T will cause the animation to be played in reverse. Defaults to F.");
+				return true;
+			}
 			String name = args[1];
 
 			Animation anim = Animation.getAnimation(name);
 
 			if (anim != null) {
-				anim.play(true);
+				if(args.length == 2 || (args.length == 3 && args[3].equalsIgnoreCase("F"))){
+					anim.play(false);
+				} else if(args.length == 3 && args[2].equalsIgnoreCase("T")){
+					anim.play(true);
+					name = name + ", reversed";
+				} else {
+					player.sendMessage("Only \"T\" or \"R\" is accepted after the name.");
+					return true;
+				}
 				player.sendMessage(p.getPrefix() + "Starting animation " + name
 						+ "!");
 				return true;
@@ -155,24 +187,46 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 		}
 
+		
+		/*****************************************
+		 * 
+		 * 
+		 * PLAY AND RESET
+		 * 
+		 * 
+		 *****************************************/
 		if (args[0].equalsIgnoreCase("playandreset")) {
 			if (args.length < 2) {
 				player.sendMessage(p.getPrefix()
 						+ "You must provide the name of the animation to play!");
 				return true;
-			} else if (args.length > 2) {
+			} else if (args.length > 3) {
 				player.sendMessage(p.getPrefix() + "Too many arguments!");
 				player.sendMessage(p.getPrefix()
-						+ "Usage: /ww playandreset <animation name>");
+						+ "Usage: /ww play <animation name> [T, F] or use /ww play help for more info");
 				return true;
 			}
-
+			
+			if(args[1].equalsIgnoreCase("help")){
+				player.sendMessage(p.getPrefix() + "Play and Reset: /ww playandreset <animation name> [T, F]");
+				player.sendMessage(ChatColor.DARK_GREEN + "Plays the named animation and then resets the stage to the first frame. The animation name is required.");
+				player.sendMessage(ChatColor.DARK_GREEN + "[T, F] is optional, T will cause the animation to be played in reverse. Defaults to F.");
+				return true;
+			}
 			String name = args[1];
 
 			Animation anim = Animation.getAnimation(name);
 
 			if (anim != null) {
-				anim.playAndReset(false);
+				if(args.length == 2 || (args.length == 3 && args[3].equalsIgnoreCase("F"))){
+					anim.playAndReset(false);
+				} else if(args.length == 3 && args[2].equalsIgnoreCase("T")){
+					anim.playAndReset(true);
+					name = name + ", reversed";
+				} else {
+					player.sendMessage("Only \"T\" or \"R\" is accepted after the name.");
+					return true;
+				}
 				player.sendMessage(p.getPrefix() + "Starting animation " + name
 						+ "!");
 				return true;
@@ -182,7 +236,15 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				return true;
 			}
 		}
-
+		
+		
+		/*************************************
+		 * 
+		 * 
+		 * RESET
+		 * 
+		 * 
+		 **************************************/
 		if (args[0].equalsIgnoreCase("reset")) {
 			if (args.length < 2) {
 				player.sendMessage(p.getPrefix()
@@ -191,7 +253,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			} else if (args.length > 2) {
 				player.sendMessage(p.getPrefix() + "Too many arguments!");
 				player.sendMessage(p.getPrefix()
-						+ "Usage: /ww reset <animation name>");
+						+ "Usage: /ww reset <animation name> or use /ww reset help for more info");
+				return true;
+			}
+			
+			if(args[1].equalsIgnoreCase("help")){
+				player.sendMessage(p.getPrefix() + "Reset: /ww reset <animation name>");
+				player.sendMessage(ChatColor.DARK_GREEN + "Resets the stage to the first frame. The animation name is required.");
 				return true;
 			}
 
@@ -200,9 +268,9 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Animation anim = Animation.getAnimation(name);
 
 			if (anim != null) {
-				anim.reset();
 				player.sendMessage(p.getPrefix() + "Resetting animation "
 						+ name + "!");
+				anim.reset();
 				return true;
 			} else {
 				player.sendMessage(p.getPrefix() + "Animaiton " + name
@@ -212,7 +280,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 		
 		
-
+		/************************************
+		 * 
+		 * 
+		 * DELETE
+		 * 
+		 * 
+		 ************************************/
 		if (args[0].equalsIgnoreCase("delete")) {
 			if (args.length < 2) {
 				player.sendMessage(p.getPrefix()
@@ -221,7 +295,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			} else if (args.length > 2) {
 				player.sendMessage(p.getPrefix() + "Too many arguments!");
 				player.sendMessage(p.getPrefix()
-						+ "Usage: /ww delete <animation name>");
+						+ "Usage: /ww delete <animation name> or use /ww delete help for more info");
+				return true;
+			}
+			
+			if(args[1].equalsIgnoreCase("help")){
+				player.sendMessage(p.getPrefix() + "Delete: /ww delete <animation name>");
+				player.sendMessage(ChatColor.DARK_GREEN + "Delete the animation, you must confirm the deletion. The animation name is required.");
 				return true;
 			}
 			
@@ -251,6 +331,15 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 
 		}
+		
+		
+		/****************************
+		 * 
+		 * 
+		 * CONFIRM
+		 * 
+		 * 
+		 ****************************/
 		
 		if(args[0].equalsIgnoreCase("confirm")){
 			
@@ -302,8 +391,27 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				return true;
 			}
 		}
+		
+		
+		/*********************************
+		 * 
+		 * 
+		 * LIST
+		 * 
+		 * 
+		 *********************************/
 
 		if (args[0].equalsIgnoreCase("list")) {
+			
+			if(args.length > 1){
+				if(args[1].equalsIgnoreCase("help")){
+					player.sendMessage(p.getPrefix() + "List: /ww list");
+					player.sendMessage(ChatColor.DARK_GREEN + "Displays a list of all created animations, if any have been created.");
+					player.sendMessage(ChatColor.DARK_GREEN + "Usage: /ww list");
+					return true;
+				}
+			}
+			
 			if (Animation.animations.isEmpty()) {
 				player.sendMessage(p.getPrefix()
 						+ "No animaitons, create one with /ww create <name>!");
@@ -317,6 +425,16 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			player.sendMessage(p.getPrefix() + result);
 			return true;
 		}
+		
+		
+		/***************************
+		 * 
+		 * 
+		 * PLAY PRIVATE
+		 * 
+		 * 
+		 ***************************/
+		
 		
 		if(args[0].equalsIgnoreCase("playprivate")){
 			if (args.length < 2) {
@@ -346,33 +464,6 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 		}
 		
-		if(args[0].equalsIgnoreCase("playprivatereversed")){
-			if (args.length < 2) {
-				player.sendMessage(p.getPrefix()
-						+ "You must provide the name of the animation to play!");
-				return true;
-			} else if (args.length > 2) {
-				player.sendMessage(p.getPrefix() + "Too many arguments!");
-				player.sendMessage(p.getPrefix()
-						+ "Usage: /ww playprivate <animation name>");
-				return true;
-			}
-
-			String name = args[1];
-
-			Animation anim = Animation.getAnimation(name);
-
-			if (anim != null) {
-				anim.playprivate(player, true);
-				player.sendMessage(p.getPrefix() + "Starting animation " + name
-						+ "!");
-				return true;
-			} else {
-				player.sendMessage(p.getPrefix() + "Animaiton " + name
-						+ " not found. Did you spell it correctly?");
-				return true;
-			}
-		}
 		player.sendMessage(p.getPrefix() + "Use /ww to bring up the help page");
 		return true;
 	}
@@ -384,9 +475,9 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww addFrame <Animation name>: Adds a new frame to the given animation");
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww delFrame <Animation name>: Deletes the last frame added to the given animation");
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww lsit: Lists all created animations and their frame lengths");
-		player.sendMessage(ChatColor.DARK_GREEN + "/ww play <name>: Plays the given animation");
-		player.sendMessage(ChatColor.DARK_GREEN + "/ww playandreset <name>: Plays the given animation and resets it to the first frame when complete");
-		player.sendMessage(ChatColor.DARK_GREEN + "/ww playPrivate <name>: Plays the animation, but it is only visible to you");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww play <name> [T, F]: Plays the given animation");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww playandreset <name> [T, F]: Plays the given animation and resets it to the first frame when complete");
+		player.sendMessage(ChatColor.DARK_GREEN + "/ww playPrivate <name> [T, F]: Plays the animation, but it is only visible to you");
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww reset <name>: Resets the animation stage to the state of the first frame");
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww delete <Animation name>: Deletes the given animation (requires confirmation)");
 		

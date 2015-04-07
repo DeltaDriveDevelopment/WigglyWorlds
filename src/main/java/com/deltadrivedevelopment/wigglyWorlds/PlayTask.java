@@ -24,7 +24,7 @@ public class PlayTask extends BukkitRunnable {
 		this.frames = frameCount;
 		this.reverse = reversed;
 		if (reversed) {
-			counter = frames;
+			counter = frames - 1;
 			frames = 0;
 		}
 		this.framesDirPath = animDirPath;

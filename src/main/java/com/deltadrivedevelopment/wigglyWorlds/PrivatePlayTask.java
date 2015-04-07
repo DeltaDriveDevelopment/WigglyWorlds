@@ -37,7 +37,7 @@ public class PrivatePlayTask extends BukkitRunnable {
 		this.world = world;
 		this.reverse = reversed;
 		if (reversed) {
-			counter = frames;
+			counter = frames - 1;
 			frames = 0;
 		}
 		tm = new TerrainManager(WigglyWorlds.getWep(), world);
