@@ -68,6 +68,7 @@ public final class WigglyWorlds extends JavaPlugin {
 		// TODO Auto-generated method stub
 		getCommand("WigglyWorlds").setExecutor(
 				new WigglyWorldsCommandExecutor(this, getWep()));
+		getCommand("WigglyWorlds").setTabCompleter(new WigglyWorldsTabCompleter(this));
 	}
 
 	private void registerListeners() {

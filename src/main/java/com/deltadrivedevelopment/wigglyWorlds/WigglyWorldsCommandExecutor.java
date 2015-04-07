@@ -1,6 +1,10 @@
 package com.deltadrivedevelopment.wigglyWorlds;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -386,5 +390,11 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww reset <name>: Resets the animation stage to the state of the first frame");
 		player.sendMessage(ChatColor.DARK_GREEN + "/ww delete <Animation name>: Deletes the given animation (requires confirmation)");
 		
+	}
+
+	public static Collection<? extends String> getCommands() {
+		// TODO Auto-generated method stub
+		List<String> commands = Arrays.asList("create", "addframe", "delframe", "list", "play", "playandreset", "playprivate", "reset", "delete", "confirm");
+		return commands;
 	}
 }
