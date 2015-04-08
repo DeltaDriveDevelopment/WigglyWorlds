@@ -1,6 +1,7 @@
 package com.deltadrivedevelopment.wigglyWorlds;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -8,15 +9,27 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.sk89q.worldedit.CuboidClipboard;
+import com.sk89q.worldedit.EmptyClipboardException;
+import com.sk89q.worldedit.FilenameException;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.MaxChangedBlocksException;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldedit.data.DataException;
+
+
+//TODO Implement playback speed selection
 
 public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
@@ -28,6 +41,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		this.p = p;
 	}
 
+	@SuppressWarnings({ "deprecation", "unused" })
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label,
 			String[] args) {
@@ -41,7 +55,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 
-		if (args.length == 0) {
+		if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
 			sendHelpMessage(player);
 			return true;
 		}
@@ -67,6 +81,12 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 
 			String name = args[1];
+
+			if (name.equalsIgnoreCase("help")) {
+				player.sendMessage(p.getPrefix()
+						+ "You cannnot name an animation \"help\"");
+				return true;
+			}
 
 			// get location points
 			Selection sel = WigglyWorlds.getWep().getSelection(player);
@@ -100,20 +120,40 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 		}
 
+		/**************************************
+		 * 
+		 * 
+		 * ADD FRAME
+		 * 
+		 * 
+		 **************************************/
+
 		if (args[0].equalsIgnoreCase("addFrame")) {
 
 			if (args.length < 2) {
 				player.sendMessage(p.getPrefix()
 						+ "You must provide the name of the animation!");
 				return true;
-			} else if (args.length > 2) {
+			} else if (args.length > 3) {
 				player.sendMessage(p.getPrefix() + "Too many arguments!");
 				player.sendMessage(p.getPrefix()
-						+ "Usage: /ww addframe <animation name>");
+						+ "Usage: /ww addframe <animation name> [index]");
 				return true;
 			}
 
 			String name = args[1];
+
+			if (name.equalsIgnoreCase("help")) {
+				player.sendMessage(p.getPrefix()
+						+ "/ww AddFrame <Animation name>:");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Adds a frame to the given animation.");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Animation name is required.");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Index is optional, defaults to the end of the animation. If index is specified, it will add the frame at the given index.");
+				return true;
+			}
 
 			Animation anim = Animation.getAnimation(name);
 			if (anim == null) {
@@ -122,13 +162,132 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				return true;
 			}
 
-			if (anim.addFrame()) {
-				player.sendMessage(p.getPrefix() + "Frame added to animation "
-						+ name + "!");
+			if (args.length == 2) {
+				if (anim.addFrame()) {
+					player.sendMessage(p.getPrefix()
+							+ "Frame added to animation " + name + "!");
+					return true;
+				} else {
+					player.sendMessage(p.getPrefix()
+							+ "Frame failed to save, no changes made");
+					return true;
+				}
+			} else if (args.length == 3) {
+				try {
+					int index = Integer.parseInt(args[2]);
+					if (index > 0 && index <= anim.getFrameCount()) {
+						if (anim.addFrameAt(index - 1)) {
+							player.sendMessage(p.getPrefix()
+									+ "Frame successfully added at index "
+									+ index + "!");
+							return true;
+						} else {
+							player.sendMessage(p.getPrefix()
+									+ "Something went wrong while adding the frame, animation may now be corrupt.");
+							return true;
+						}
+
+					} else {
+						player.sendMessage(p.getPrefix()
+								+ "Index must be between 1 and "
+								+ (anim.getFrameCount() + 1)
+								+ " (inclusive) for animation " + name);
+						return true;
+					}
+				} catch (NumberFormatException e) {
+					player.sendMessage(p.getPrefix()
+							+ "Please only use a number for the index to add");
+				}
+			}
+		}
+
+		/**************************************
+		 * 
+		 * 
+		 * DELETE FRAME
+		 * 
+		 * 
+		 *************************************/
+
+		if (args[0].equalsIgnoreCase("delFrame")) {
+			if (args.length < 2) {
+				player.sendMessage(p.getPrefix()
+						+ "You must provide the name of the animation!");
 				return true;
+			} else if (args.length > 3) {
+				player.sendMessage(p.getPrefix() + "Too many arguments!");
+				player.sendMessage(p.getPrefix()
+						+ "Usage: /ww delframe <animation name> [index]");
+				return true;
+			}
+
+			String name = args[1];
+			if (name.equalsIgnoreCase("help")) {
+				player.sendMessage(p.getPrefix()
+						+ "/ww DelFrame <Animation name> [index]:");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Attempts to a frame of the animation.");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Animation name is required.");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Index is optional, defaults to the last frame of the animation. If index is specified, it will delete the frame at the given index.");
+				return true;
+			}
+
+			Animation anim = Animation.getAnimation(name);
+			if (anim == null) {
+				player.sendMessage(p.getPrefix() + "Animation " + name
+						+ " not found, did you spell it correctly?");
+				return true;
+			}
+
+			if (anim.getFrameCount() > 0) {
+				if (args.length == 2) {
+					if (anim.delFrame()) {
+						player.sendMessage(p.getPrefix()
+								+ "Last frame  deleted from the animation "
+								+ name + "!");
+						return true;
+					} else {
+						player.sendMessage(p.getPrefix()
+								+ "Frame failed to delete, no changes made");
+						player.sendMessage("Frame count: "
+								+ anim.getFrameCount());
+						return true;
+					}
+				} else if (args.length == 3) {
+					int index;
+					try {
+						index = Integer.parseInt(args[2]);
+						if (index > 0 && index < anim.getFrameCount()) {
+							if (anim.delFrameAt(index - 1)) {
+								player.sendMessage(p.getPrefix()
+										+ "Frame at index " + index
+										+ " deleted successfully!");
+								return true;
+							} else {
+								player.sendMessage(p.getPrefix()
+										+ "Frame failed to delete successfully. Animation may be broken if index was not the last frame.");
+							}
+
+						} else {
+							player.sendMessage(p.getPrefix()
+									+ "Index must be between 1 and "
+									+ (anim.getFrameCount())
+									+ " (inclusive) for animation " + name
+									+ ".");
+							return true;
+						}
+					} catch (NumberFormatException e) {
+						player.sendMessage(p.getPrefix()
+								+ "Please only use a number for the index to delete");
+						return true;
+					}
+				}
 			} else {
 				player.sendMessage(p.getPrefix()
-						+ "Frame failed to save, no changes made");
+						+ "That animation has no frames, try adding one with /ww addframe "
+						+ name);
 				return true;
 			}
 		}
@@ -169,7 +328,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
 			if (anim != null) {
 				if (args.length == 2
-						|| (args.length == 3 && args[3].equalsIgnoreCase("F"))) {
+						|| (args.length == 3 && args[2].equalsIgnoreCase("F"))) {
 					anim.play(false);
 				} else if (args.length == 3 && args[2].equalsIgnoreCase("T")) {
 					anim.play(true);
@@ -222,7 +381,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
 			if (anim != null) {
 				if (args.length == 2
-						|| (args.length == 3 && args[3].equalsIgnoreCase("F"))) {
+						|| (args.length == 3 && args[2].equalsIgnoreCase("F"))) {
 					anim.playAndReset(false);
 				} else if (args.length == 3 && args[2].equalsIgnoreCase("T")) {
 					anim.playAndReset(true);
@@ -239,6 +398,69 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 						+ " not found. Did you spell it correctly?");
 				return true;
 			}
+		}
+
+		/*************************************
+		 * 
+		 * 
+		 * SET
+		 * 
+		 * 
+		 *************************************/
+
+		if (args[0].equalsIgnoreCase("set")) {
+			if (args.length < 3) {
+				player.sendMessage(p.getPrefix()
+						+ "You must provide the name of the animation and index to set!");
+				return true;
+			} else if (args.length > 3) {
+				player.sendMessage(p.getPrefix() + "Too many arguments!");
+				player.sendMessage(p.getPrefix()
+						+ "Usage: /ww set <name> <index> or use /ww set help for more info");
+				return true;
+			}
+
+			if (args[1].equalsIgnoreCase("help")) {
+				player.sendMessage(p.getPrefix()
+						+ "Set: /ww set <animation name> <index>");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Sets the animation stage to the given frame. The animation name and index are required.");
+				return true;
+			}
+
+			String name = args[1];
+
+			Animation anim = Animation.getAnimation(name);
+
+			if (anim != null) {
+				int index;
+				try {
+					index = Integer.parseInt(args[2]);
+				} catch (NumberFormatException e) {
+					player.sendMessage(p.getPrefix()
+							+ "Please only use numbers to specify the frame");
+					return true;
+				}
+
+				if (index > 0 && index <= anim.getFrameCount()) {
+					player.sendMessage(p.getPrefix() + "Setting animation "
+							+ name + " to frame " + index + "!");
+					anim.loadFrame(index - 1);
+					return true;
+				} else {
+					player.sendMessage(p.getPrefix()
+							+ "Index must be between 1 and "
+							+ anim.getFrameCount()
+							+ " (inclusive) for animation " + name + "!");
+					return true;
+				}
+
+			} else {
+				player.sendMessage(p.getPrefix()
+						+ "Animation not found. Did you spell it correctly?");
+				return true;
+			}
+
 		}
 
 		/*************************************
@@ -433,7 +655,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 			String result = "";
 			for (Animation anim : Animation.animations) {
-				result = result + anim.getName() + ", ";
+				result = result + anim.getName() + " (" + anim.getFrameCount()
+						+ "), ";
 			}
 			result = result.substring(0, result.length() - 2);
 			player.sendMessage(p.getPrefix() + result);
@@ -475,7 +698,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
 			if (anim != null) {
 				if (args.length == 2
-						|| (args.length == 3 && args[3].equalsIgnoreCase("F"))) {
+						|| (args.length == 3 && args[2].equalsIgnoreCase("F"))) {
 					anim.playprivate(player, false);
 				} else if (args.length == 3 && args[2].equalsIgnoreCase("T")) {
 					anim.playprivate(player, true);
@@ -484,14 +707,265 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 					player.sendMessage("Only \"T\" or \"R\" is accepted after the name.");
 					return true;
 				}
-				player.sendMessage(p.getPrefix() + "Starting private animation " + name
-						+ "!");
+				player.sendMessage(p.getPrefix()
+						+ "Starting private animation " + name + "!");
 				return true;
 			} else {
 				player.sendMessage(p.getPrefix() + "Animaiton " + name
 						+ " not found. Did you spell it correctly?");
 				return true;
 			}
+		}
+
+		/*************************************************
+		 * 
+		 * 
+		 * FRAME
+		 * 
+		 * 
+		 ************************************************/
+
+		if (args[0].equalsIgnoreCase("frame")) {
+			if (args.length < 2) {
+				player.sendMessage(p.getPrefix()
+						+ "You must provide the name of the animation to frame!");
+				player.sendMessage(p.getPrefix() + "Usage /ww frame <name>");
+				return true;
+			} else if (args.length > 2) {
+				player.sendMessage(p.getPrefix() + "Too many arguments!");
+				player.sendMessage(p.getPrefix() + "Usage: /ww frame <name>");
+				return true;
+			}
+			
+			if(player.hasMetadata("frame")){
+				player.sendMessage(p.getPrefix() + "You must clear your current frame before you can create another one");
+				return true;
+			}
+
+			String name = args[1];
+
+			if (name.equalsIgnoreCase("help")) {
+				player.sendMessage(p.getPrefix() + "Frame: /ww frame <name>");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Creates a wool frame around the stage border that only you can see");
+				player.sendMessage(ChatColor.DARK_GREEN
+						+ "Everything WITHIN the frame will be saved. Clear the frame with /ww clearframe");
+				return true;
+			}
+
+			Animation anim = Animation.getAnimation(name);
+
+			if (anim == null) {
+				player.sendMessage(p.getPrefix()
+						+ "Animation not found. Did you spell it correctly?");
+				return true;
+			}
+
+			Location topLeftFar = anim.getMaximumPoint().unpack();
+			Location bottomRightNear = anim.getMinimumPoint().unpack();
+
+			topLeftFar.add(1, 1, 1);
+			if (bottomRightNear.getBlockY() > 0) {
+				bottomRightNear.add(-1, -1, -1);
+			} else {
+				bottomRightNear.add(-1, 0, -1);
+			}
+
+			Location topRightFar = new Location(topLeftFar.getWorld(),
+					bottomRightNear.getBlockX(), topLeftFar.getBlockY(),
+					topLeftFar.getBlockZ());
+			Location topLeftNear = new Location(topLeftFar.getWorld(),
+					topLeftFar.getBlockX(), topLeftFar.getBlockY(),
+					bottomRightNear.getBlockZ());
+			Location topRightNear = new Location(topLeftFar.getWorld(),
+					topRightFar.getBlockX(), topLeftFar.getBlockY(),
+					topLeftNear.getBlockZ());
+
+			Location bottomRightFar = new Location(topRightFar.getWorld(),
+					topRightFar.getBlockX(), bottomRightNear.getBlockY(),
+					topRightFar.getBlockZ());
+			Location bottomLeftnear = new Location(topRightFar.getWorld(),
+					topLeftNear.getBlockX(), bottomRightNear.getBlockY(),
+					topLeftNear.getBlockZ());
+			Location bottomLeftFar = new Location(topRightFar.getWorld(),
+					topLeftFar.getBlockX(), bottomRightNear.getBlockY(),
+					topLeftFar.getBlockZ());
+
+			boolean alternate = false;
+			for (int i = topRightFar.getBlockX(); i <= topLeftFar.getBlockX(); i++) {
+				Location topFar = new Location(topLeftFar.getWorld(), i,
+						topLeftFar.getBlockY(), topRightFar.getBlockZ());
+				Location topNear = new Location(topLeftFar.getWorld(), i,
+						topLeftNear.getBlockY(), topLeftNear.getBlockZ());
+				Location bottomFar = new Location(topFar.getWorld(), i,
+						bottomLeftFar.getBlockY(), bottomLeftFar.getBlockZ());
+				Location bottomNear = new Location(topFar.getWorld(), i,
+						bottomRightNear.getBlockY(),
+						bottomRightNear.getBlockZ());
+
+				if (alternate) {
+					player.sendBlockChange(topFar, Material.WOOL, (byte) 15);
+					player.sendBlockChange(topNear, Material.WOOL, (byte) 15);
+					player.sendBlockChange(bottomFar, Material.WOOL, (byte) 15);
+					player.sendBlockChange(bottomNear, Material.WOOL, (byte) 15);
+					alternate = !alternate;
+				} else {
+					player.sendBlockChange(topFar, Material.WOOL, (byte) 4);
+					player.sendBlockChange(topNear, Material.WOOL, (byte) 4);
+					player.sendBlockChange(bottomFar, Material.WOOL, (byte) 4);
+					player.sendBlockChange(bottomNear, Material.WOOL, (byte) 4);
+					alternate = !alternate;
+				}
+			}
+
+			for (int i = bottomLeftFar.getBlockY(); i <= topLeftFar.getBlockY(); i++) {
+				Location leftFar = new Location(topLeftFar.getWorld(),
+						topLeftFar.getBlockX(), i, topLeftFar.getBlockZ());
+				Location leftNear = new Location(topLeftFar.getWorld(),
+						topLeftNear.getBlockX(), i, topLeftNear.getBlockZ());
+				Location rightFar = new Location(leftFar.getWorld(),
+						bottomRightFar.getBlockX(), i,
+						bottomRightFar.getBlockZ());
+				Location rightNear = new Location(leftFar.getWorld(),
+						bottomRightNear.getBlockX(), i,
+						bottomRightNear.getBlockZ());
+
+				if (alternate) {
+					player.sendBlockChange(leftFar, Material.WOOL, (byte) 15);
+					player.sendBlockChange(leftNear, Material.WOOL, (byte) 15);
+					player.sendBlockChange(rightFar, Material.WOOL, (byte) 15);
+					player.sendBlockChange(rightNear, Material.WOOL, (byte) 15);
+					alternate = !alternate;
+				} else {
+					player.sendBlockChange(leftFar, Material.WOOL, (byte) 4);
+					player.sendBlockChange(leftNear, Material.WOOL, (byte) 4);
+					player.sendBlockChange(rightFar, Material.WOOL, (byte) 4);
+					player.sendBlockChange(rightNear, Material.WOOL, (byte) 4);
+					alternate = !alternate;
+				}
+			}
+
+			for (int i = topRightNear.getBlockZ(); i <= topRightFar.getBlockZ(); i++) {
+				Location topRight = new Location(topLeftFar.getWorld(),
+						topRightFar.getBlockX(), topLeftFar.getBlockY(), i);
+				Location topLeft = new Location(topLeftFar.getWorld(),
+						topLeftFar.getBlockX(), topLeftNear.getBlockY(), i);
+				Location bottomRight = new Location(topRight.getWorld(),
+						bottomRightFar.getBlockX(), bottomLeftFar.getBlockY(),
+						i);
+				Location bottomLeft = new Location(topRight.getWorld(),
+						bottomLeftFar.getBlockX(), bottomRightNear.getBlockY(),
+						i);
+
+				if (alternate) {
+					player.sendBlockChange(topRight, Material.WOOL, (byte) 15);
+					player.sendBlockChange(topLeft, Material.WOOL, (byte) 15);
+					player.sendBlockChange(bottomRight, Material.WOOL,
+							(byte) 15);
+					player.sendBlockChange(bottomLeft, Material.WOOL, (byte) 15);
+					alternate = !alternate;
+				} else {
+					player.sendBlockChange(topRight, Material.WOOL, (byte) 4);
+					player.sendBlockChange(topLeft, Material.WOOL, (byte) 4);
+					player.sendBlockChange(bottomRight, Material.WOOL, (byte) 4);
+					player.sendBlockChange(bottomLeft, Material.WOOL, (byte) 4);
+					alternate = !alternate;
+				}
+			}
+
+			player.setMetadata("frame", new FixedMetadataValue(p, name));
+			player.sendMessage(p.getPrefix()
+					+ "Animation framed, everything within the frame is saved when a new frame is added. Use /ww clearframe to remove the frame");
+			return true;
+		}
+
+		/***********************************************
+		 * 
+		 * 
+		 * CLEAR FRAME
+		 * 
+		 * 
+		 ***********************************************/
+
+		if (args[0].equalsIgnoreCase("clearframe")) {
+
+			if (args.length > 1) {
+				if (args[1].equalsIgnoreCase("help")) {
+					player.sendMessage(p.getPrefix()
+							+ "Clear Frame: /ww clearframe");
+					player.sendMessage(ChatColor.DARK_GREEN
+							+ "removes any frames you have created.");
+					player.sendMessage(ChatColor.DARK_GREEN
+							+ "Usage: /ww clearframe");
+					return true;
+				}
+			}
+
+			if (!player.hasMetadata("frame")) {
+				player.sendMessage(p.getPrefix()
+						+ "You haven't set any frames to be cleared");
+				return true;
+			}
+
+			String name;
+			Animation anim = null;
+
+			for (MetadataValue mdv : player.getMetadata("frame")) {
+				if (mdv.getOwningPlugin().equals(p)) {
+					anim = Animation.getAnimation(mdv.asString());
+				}
+			}
+			
+			player.removeMetadata("frame", p);
+
+			if(anim == null){
+				player.sendMessage(p.getPrefix() + "The animation you previously created a frame for was not found. You may create other frames now.");
+				return true;
+			}
+			
+			final String framesDirPath = anim.getAnimDirPath();
+			final World world = anim.getMaximumPoint().unpack().getWorld();
+			
+			player.sendMessage(p.getPrefix() + "Clearing Frame...");
+
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					File frame = new File(framesDirPath + File.separator + "-1");
+					TerrainManager tm = new TerrainManager(
+							WigglyWorlds.getWep(), world);
+
+					LocalSession ls;
+					try {
+						ls = tm.getLocalSessionWithClipboard(frame);
+						CuboidClipboard clipboard = ls.getClipboard();
+						int x = clipboard.getWidth();
+						int y = clipboard.getHeight();
+						int z = clipboard.getLength();
+						Vector origin = clipboard.getOrigin();
+						for (int x1 = -1; x1 <= x; x1++) {
+							for (int y1 = -1; y1 <= y; y1++) {
+								for (int z1 = -1; z1 <= z; z1++) {
+									Location loc = new Location(world,
+											origin.getBlockX() + x1,
+											origin.getBlockY() + y1,
+											origin.getBlockZ() + z1);
+									player.sendBlockChange(loc, loc.getBlock()
+											.getType(), loc.getBlock()
+											.getData());
+								}
+							}
+						}
+
+					} catch (FilenameException | MaxChangedBlocksException
+							| EmptyClipboardException | DataException
+							| IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}.runTaskLater(WigglyWorlds.getP(), 1);
+			return true;
 		}
 
 		player.sendMessage(p.getPrefix() + "Use /ww to bring up the help page");
@@ -503,11 +977,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww: Displays this help message");
 		player.sendMessage(ChatColor.DARK_GREEN
+				+ "/ww help: Displays this help message");
+		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww create <name>: Creates a new animaiton with the name <name>");
 		player.sendMessage(ChatColor.DARK_GREEN
-				+ "/ww addFrame <Animation name>: Adds a new frame to the given animation");
+				+ "/ww addFrame <Animation name> [index]: Adds a new frame to the given animation");
 		player.sendMessage(ChatColor.DARK_GREEN
-				+ "/ww delFrame <Animation name>: Deletes the last frame added to the given animation");
+				+ "/ww delFrame <Animation name> [index]: Deletes the last frame added to the given animation if index is not specified.");
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww lsit: Lists all created animations and their frame lengths");
 		player.sendMessage(ChatColor.DARK_GREEN
@@ -516,6 +992,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				+ "/ww playandreset <name> [T, F]: Plays the given animation and resets it to the first frame when complete");
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww playPrivate <name> [T, F]: Plays the animation, but it is only visible to you");
+		player.sendMessage(ChatColor.DARK_GREEN
+				+ "/ww set <name> <index>: Sets the animation stage to the specified index");
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww reset <name>: Resets the animation stage to the state of the first frame");
 		player.sendMessage(ChatColor.DARK_GREEN

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -56,6 +57,8 @@ public class Animation implements Serializable {
 		if (Files.notExists(path, LinkOption.NOFOLLOW_LINKS)) {
 			Animation result = new Animation(loc1, loc2, name);
 			animations.add(result);
+			result.setFrameCount(-1);
+			result.addFrameAt(-1);
 			return result;
 		} else {
 			return null;
@@ -153,6 +156,96 @@ public class Animation implements Serializable {
 		}
 
 	}
+	
+	/**
+	 * Adds a frame to the given index
+	 * @param index to add frame at
+	 * @return True if successful
+	 */
+	public boolean addFrameAt(int index){
+		if(index == frameCount){
+			if(addFrame()){
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		TerrainManager tm = new TerrainManager(wep, lp1.unpack().getWorld());
+		
+		for(int i = frameCount - 1; i >= index; i--){
+			File increment = new File(animDirPath + File.separator + i + ".schematic");
+			File temp = new File(animDirPath + File.separator + (i+1) + ".schematic");
+			boolean success = increment.renameTo(temp);
+			if(!success){
+				Bukkit.getServer().getLogger().info("Renaming file " + i + " failed");
+				return false;
+			}
+		}
+		
+		File newFrame = new File(animDirPath + File.separator + index);
+		try {
+			tm.saveTerrain(newFrame, lp1.unpack(), lp2.unpack());
+			frameCount++;
+			return true;
+		} catch (FilenameException | DataException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	/**
+	 * Deletes the last frame in the animation
+	 * 
+	 * @return True if the frame was deleted
+	 */
+	public boolean delFrame() {
+		File toDelete = new File(animDirPath + File.separator + (frameCount - 1) + ".schematic");
+		if(toDelete.exists()){
+			if(toDelete.delete()){
+				frameCount--;
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Deletes the frame at the given index and adjusts all other frames accordingly
+	 * 
+	 * @param index, index of frame to delete
+	 * @return true if successful
+	 */
+	public boolean delFrameAt(int index){
+		if(index == frameCount - 1) {
+			if(delFrame()){
+				return true;
+			} else{ 
+				return false;
+			}
+		}
+		
+		File toDelete = new File(animDirPath + File.separator + index + ".schematic");
+		if(toDelete.exists()){
+			if(toDelete.delete()){
+				frameCount--;
+				for(int i = index + 1; i < frameCount + 1; i++){
+					File decrement = new File(animDirPath + File.separator + i + ".schematic");
+					File temp = new File(animDirPath + File.separator + (i-1) + ".schematic");
+					boolean success = decrement.renameTo(temp);
+					if(!success){
+						Bukkit.getServer().getLogger().info("Renaming file " + i + " failed");
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Plays the animation once through, leaving blocks in the state of the
@@ -221,6 +314,22 @@ public class Animation implements Serializable {
 	public boolean hasFrames() {
 		return hasFrames;
 	}
+	
+	public int getFrameCount(){
+		return frameCount;
+	}
+	
+	public void setFrameCount(int frameCount){
+		this.frameCount = frameCount;
+	}
+	
+	public LocationPack getMinimumPoint(){
+		return lp1;
+	}
+	
+	public LocationPack getMaximumPoint(){
+		return lp2;
+	}
 
 	public static Collection<? extends String> getAnimationNames() {
 		// TODO Auto-generated method stub
@@ -235,6 +344,27 @@ public class Animation implements Serializable {
 			}
 		}
 		return result;
+	}
+
+	public void loadFrame(final int i) {
+		new BukkitRunnable() {
+			File frame = new File(animDirPath + File.separator + i);
+			TerrainManager tm = new TerrainManager(WigglyWorlds.getWep(), lp1
+					.unpack().getWorld());
+
+			@Override
+			public void run() {
+				try {
+					tm.loadSchematic(frame);
+				} catch (FilenameException | DataException
+						| MaxChangedBlocksException | EmptyClipboardException
+						| IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}.runTaskLater(WigglyWorlds.getP(), 20);
+		
 	}
 
 }

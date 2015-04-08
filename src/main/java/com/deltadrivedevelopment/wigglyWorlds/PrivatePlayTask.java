@@ -111,7 +111,7 @@ public class PrivatePlayTask extends BukkitRunnable {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					File frame = new File(framesDirPath + File.separator + "0");
+					File frame = new File(framesDirPath + File.separator + "-1");
 					TerrainManager tm = new TerrainManager(
 							WigglyWorlds.getWep(), world);
 					try {

@@ -41,6 +41,7 @@ public class TerrainManager {
 	 * @param player	the player to work with
 	 */
 	public TerrainManager(WorldEditPlugin wep, Player player) {
+		wep = WigglyWorlds.getWep();
 		we = wep.getWorldEdit();
 		localPlayer = wep.wrapPlayer(player);
 		localSession = we.getSession(localPlayer);
@@ -54,6 +55,7 @@ public class TerrainManager {
 	 * @param world	the world to work in
 	 */
 	public TerrainManager(WorldEditPlugin wep, World world) {
+		wep = WigglyWorlds.getWep();
 		we = wep.getWorldEdit();
 		localPlayer = null;
 		localSession = new LocalSession(we.getConfiguration());

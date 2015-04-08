@@ -41,7 +41,7 @@ public class WigglyWorldsTabCompleter implements TabCompleter {
 			}
 
 			
-		} else if (args.length == 2) {
+		} else if (args.length == 2 && !args[0].equalsIgnoreCase("create") && !args[0].equalsIgnoreCase("list")) {
 			
 			result.addAll(Animation.getAnimationNames());
 			
@@ -58,7 +58,7 @@ public class WigglyWorldsTabCompleter implements TabCompleter {
 			if(result.size() == 1 && result.get(0).equalsIgnoreCase("")){
 				sender.sendMessage(p.getPrefix() + "You have not created any animations yet. Try making one by selecting an area and using /ww create <name>");
 			}
-		} else if (args.length == 3 && (args[1].contains("play"))) {
+		} else if (args.length == 3 && (args[0].contains("p"))) {
 			result.addAll(Arrays.asList("T", "F"));
 		} else {
 			result.add("");
