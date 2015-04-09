@@ -28,7 +28,6 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.selections.Selection;
 import com.sk89q.worldedit.data.DataException;
 
-
 //TODO Implement playback speed selection
 
 public class WigglyWorldsCommandExecutor implements CommandExecutor {
@@ -736,9 +735,10 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				player.sendMessage(p.getPrefix() + "Usage: /ww frame <name>");
 				return true;
 			}
-			
-			if(player.hasMetadata("frame")){
-				player.sendMessage(p.getPrefix() + "You must clear your current frame before you can create another one");
+
+			if (player.hasMetadata("frame")) {
+				player.sendMessage(p.getPrefix()
+						+ "You must clear your current frame before you can create another one");
 				return true;
 			}
 
@@ -915,17 +915,18 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 					anim = Animation.getAnimation(mdv.asString());
 				}
 			}
-			
+
 			player.removeMetadata("frame", p);
 
-			if(anim == null){
-				player.sendMessage(p.getPrefix() + "The animation you previously created a frame for was not found. You may create other frames now.");
+			if (anim == null) {
+				player.sendMessage(p.getPrefix()
+						+ "The animation you previously created a frame for was not found. You may create other frames now.");
 				return true;
 			}
-			
+
 			final String framesDirPath = anim.getAnimDirPath();
 			final World world = anim.getMaximumPoint().unpack().getWorld();
-			
+
 			player.sendMessage(p.getPrefix() + "Clearing Frame...");
 
 			new BukkitRunnable() {
@@ -998,14 +999,17 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				+ "/ww reset <name>: Resets the animation stage to the state of the first frame");
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww delete <Animation name>: Deletes the given animation (requires confirmation)");
-
+		player.sendMessage(ChatColor.DARK_GREEN
+				+ "/ww frame <name>: Creates a frame around the animation stage.");
+		player.sendMessage(ChatColor.DARK_GREEN 
+				+ "/ww clearframe: Removes the last frame you created.");
 	}
 
 	public static Collection<? extends String> getCommands() {
 		// TODO Auto-generated method stub
-		List<String> commands = Arrays.asList("create", "addframe", "delframe",
-				"list", "play", "playandreset", "playprivate", "reset",
-				"delete", "confirm");
+		List<String> commands = Arrays.asList("help", "create", "addframe",
+				"delframe", "list", "play", "playandreset", "playprivate",
+				"reset", "delete", "confirm", "set", "Frame", "ClearFrame");
 		return commands;
 	}
 }
