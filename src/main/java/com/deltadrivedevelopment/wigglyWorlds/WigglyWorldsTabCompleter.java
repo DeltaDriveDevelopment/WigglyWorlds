@@ -41,7 +41,7 @@ public class WigglyWorldsTabCompleter implements TabCompleter {
 			}
 
 			
-		} else if (args.length == 2 && !args[0].equalsIgnoreCase("create") && !args[0].equalsIgnoreCase("list")) {
+		} else if (args.length == 2 && !args[0].equalsIgnoreCase("create") && !args[0].equalsIgnoreCase("list") && !args[0].equalsIgnoreCase("clearFrame")) {
 			
 			result.addAll(Animation.getAnimationNames());
 			

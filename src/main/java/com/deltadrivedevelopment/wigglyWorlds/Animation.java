@@ -332,8 +332,6 @@ public class Animation implements Serializable {
 	}
 
 	public static Collection<? extends String> getAnimationNames() {
-		// TODO Auto-generated method stub
-
 		List<String> result = new ArrayList<>();
 		
 		if (animations.isEmpty()) {
@@ -359,7 +357,6 @@ public class Animation implements Serializable {
 				} catch (FilenameException | DataException
 						| MaxChangedBlocksException | EmptyClipboardException
 						| IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
