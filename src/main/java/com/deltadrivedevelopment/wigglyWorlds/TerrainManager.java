@@ -2,6 +2,7 @@ package com.deltadrivedevelopment.wigglyWorlds;
 
 import java.io.File;
 import java.io.IOException;
+
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -9,7 +10,6 @@ import org.bukkit.entity.Player;
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.FilenameException;
 import com.sk89q.worldedit.LocalPlayer;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
@@ -19,6 +19,7 @@ import com.sk89q.worldedit.bukkit.BukkitWorld;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.data.DataException;
 import com.sk89q.worldedit.schematic.SchematicFormat;
+import com.sk89q.worldedit.util.io.file.FilenameException;
 
 /**
  * @author desht
@@ -26,6 +27,7 @@ import com.sk89q.worldedit.schematic.SchematicFormat;
  * A wrapper class for the WorldEdit terrain loading & saving API to make things a little
  * simple for other plugins to use.
  */
+@SuppressWarnings("deprecation")
 public class TerrainManager {
 	private static final String EXTENSION = "schematic";
 
@@ -105,8 +107,12 @@ public class TerrainManager {
 		                              EXTENSION, new String[] { EXTENSION });
 
 		editSession.enableQueue();
-		localSession.setClipboard(SchematicFormat.MCEDIT.load(saveFile));
-		localSession.getClipboard().place(editSession, getPastePosition(loc), false);
+		//localSession.setClipboard(SchematicFormat.MCEDIT.load(saveFile));
+		//localSession.getClipboard().place(editSession, getPastePosition(loc), false);
+		//editSession.flushQueue();
+		//we.flushBlockBag(localPlayer, editSession);
+		CuboidClipboard cb = SchematicFormat.MCEDIT.load(saveFile);
+		cb.place(editSession, getPastePosition(loc, cb), false);
 		editSession.flushQueue();
 		we.flushBlockBag(localPlayer, editSession);
 	}
@@ -125,18 +131,16 @@ public class TerrainManager {
 		loadSchematic(saveFile, null);
 	}
 	
-	public LocalSession getLocalSessionWithClipboard(File saveFile) throws FilenameException, DataException, IOException, MaxChangedBlocksException, EmptyClipboardException {
+	public CuboidClipboard getLocalSessionWithClipboard(File saveFile) throws FilenameException, DataException, IOException, MaxChangedBlocksException, EmptyClipboardException {
 		saveFile = we.getSafeSaveFile(localPlayer,
 		                              saveFile.getParentFile(), saveFile.getName(),
 		                              EXTENSION, new String[] { EXTENSION });
-
-		localSession.setClipboard(SchematicFormat.MCEDIT.load(saveFile));
-		return localSession;
+		return SchematicFormat.MCEDIT.load(saveFile);
 	}
 
-	private Vector getPastePosition(Location loc) throws EmptyClipboardException {
+	private Vector getPastePosition(Location loc, CuboidClipboard cb) throws EmptyClipboardException {
 		if (loc == null) 
-			return localSession.getClipboard().getOrigin();
+			return cb.getOrigin();
 		else 
 			return new Vector(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
 	}

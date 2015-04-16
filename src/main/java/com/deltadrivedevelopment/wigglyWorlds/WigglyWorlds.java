@@ -91,7 +91,18 @@ public final class WigglyWorlds extends JavaPlugin {
 	 */
 
 	public void onDisable() {
+		stopAnimations();
 		saveFiles();
+	}
+
+	private void stopAnimations() {
+		for(Animation anim: Animation.animations){
+			if(anim.isPlaying()){
+				anim.reset();
+				anim.stopPlaying();
+			}
+		}
+		
 	}
 
 	private void saveFiles() {

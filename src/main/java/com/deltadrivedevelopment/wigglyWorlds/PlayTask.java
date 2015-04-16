@@ -7,12 +7,14 @@ import org.bukkit.World;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.FilenameException;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.data.DataException;
+import com.sk89q.worldedit.util.io.file.FilenameException;
 
+@SuppressWarnings("deprecation")
 public class PlayTask extends BukkitRunnable {
 
+	private Animation anim;
 	private int counter = 0;
 	private int frames;
 	private boolean reverse;
@@ -20,7 +22,9 @@ public class PlayTask extends BukkitRunnable {
 	private TerrainManager tm;
 
 	public PlayTask(int frameCount, String animDirPath, World world,
-			boolean reversed) {
+			boolean reversed, Animation anim) {
+		
+		this.anim = anim;
 		this.frames = frameCount;
 		this.reverse = reversed;
 		if (reversed) {
@@ -60,6 +64,7 @@ public class PlayTask extends BukkitRunnable {
 					counter--;
 				}
 			} else {
+				anim.setPlaying(false);
 				this.cancel();
 			}
 	}

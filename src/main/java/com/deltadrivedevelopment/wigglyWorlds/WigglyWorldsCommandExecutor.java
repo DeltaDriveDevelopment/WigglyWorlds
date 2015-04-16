@@ -20,18 +20,18 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.FilenameException;
-import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.bukkit.selections.Selection;
 import com.sk89q.worldedit.data.DataException;
+import com.sk89q.worldedit.util.io.file.FilenameException;
 
 //TODO Implement playback speed selection
 //TODO Add copy function
 //TODO Add rotate function
 
+@SuppressWarnings("deprecation")
 public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
 	private WigglyWorlds p;
@@ -43,7 +43,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 	}
 
 	private boolean create(String[] args, Player player) {
-		
+
 		// check arguments
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
@@ -95,8 +95,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private boolean addFrame(String[] args, Player player){
-		
+	private boolean addFrame(String[] args, Player player) {
+
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation!");
@@ -111,8 +111,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		String name = args[1];
 
 		if (name.equalsIgnoreCase("help")) {
-			player.sendMessage(p.getPrefix()
-					+ "/ww AddFrame <Animation name>:");
+			player.sendMessage(p.getPrefix() + "/ww AddFrame <Animation name>:");
 			player.sendMessage(ChatColor.DARK_GREEN
 					+ "Adds a frame to the given animation.");
 			player.sendMessage(ChatColor.DARK_GREEN
@@ -123,7 +122,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 
 		Animation anim = Animation.getAnimation(name);
-		
+
 		if (anim == null) {
 			player.sendMessage(p.getPrefix() + "Animation " + name
 					+ " not found, did you spell it correctly?");
@@ -132,8 +131,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 
 		if (args.length == 2) {
 			if (anim.addFrame()) {
-				player.sendMessage(p.getPrefix()
-						+ "Frame added to animation " + name + "!");
+				player.sendMessage(p.getPrefix() + "Frame added to animation "
+						+ name + "!");
 				return true;
 			} else {
 				player.sendMessage(p.getPrefix()
@@ -146,8 +145,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 				if (index > 0 && index <= anim.getFrameCount()) {
 					if (anim.addFrameAt(index - 1)) {
 						player.sendMessage(p.getPrefix()
-								+ "Frame successfully added at index "
-								+ index + "!");
+								+ "Frame successfully added at index " + index
+								+ "!");
 						return true;
 					} else {
 						player.sendMessage(p.getPrefix()
@@ -171,8 +170,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		return false;
 	}
 
-	private boolean delFrame(String[] args, Player player){
-		
+	private boolean delFrame(String[] args, Player player) {
+
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation!");
@@ -208,14 +207,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			if (args.length == 2) {
 				if (anim.delFrame()) {
 					player.sendMessage(p.getPrefix()
-							+ "Last frame  deleted from the animation "
-							+ name + "!");
+							+ "Last frame  deleted from the animation " + name
+							+ "!");
 					return true;
 				} else {
 					player.sendMessage(p.getPrefix()
 							+ "Frame failed to delete, no changes made");
-					player.sendMessage("Frame count: "
-							+ anim.getFrameCount());
+					player.sendMessage("Frame count: " + anim.getFrameCount());
 					return true;
 				}
 			} else if (args.length == 3) {
@@ -237,8 +235,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 						player.sendMessage(p.getPrefix()
 								+ "Index must be between 1 and "
 								+ (anim.getFrameCount())
-								+ " (inclusive) for animation " + name
-								+ ".");
+								+ " (inclusive) for animation " + name + ".");
 						return true;
 					}
 				} catch (NumberFormatException e) {
@@ -256,42 +253,70 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		return false;
 	}
 
-	private boolean play(String[] args, Player player){
+	private boolean play(String[] args, Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to play!");
 			return true;
-		} else if (args.length > 3) {
+		} else if (args.length > 4) {
 			player.sendMessage(p.getPrefix() + "Too many arguments!");
 			player.sendMessage(p.getPrefix()
-					+ "Usage: /ww play <animation name> [T, F] or use /ww play help for more info");
+					+ "Usage: /ww play <animation name> [T, F] [FPS] or use /ww play help for more info");
 			return true;
 		}
 
 		if (args[1].equalsIgnoreCase("help")) {
 			player.sendMessage(p.getPrefix()
-					+ "Play: /ww play <animation name> [T, F]");
+					+ "Play: /ww play <animation name> [T, F] [FPS]");
 			player.sendMessage(ChatColor.DARK_GREEN
 					+ "Plays the named animation. The animation name is required.");
 			player.sendMessage(ChatColor.DARK_GREEN
 					+ "[T, F] is optional, T will cause the animation to be played in reverse. Defaults to F.");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "[FPS] is optional, defaults to 4 frames per second. Must be between 1 and 20 (inclusive). In order to specify a non default FPS you MUST choose T or F");
 			return true;
 		}
 		String name = args[1];
-
+		boolean reversed = false;
 		Animation anim = Animation.getAnimation(name);
 
 		if (anim != null) {
-			if (args.length == 2
-					|| (args.length == 3 && args[2].equalsIgnoreCase("F"))) {
-				anim.play(false);
-			} else if (args.length == 3 && args[2].equalsIgnoreCase("T")) {
-				anim.play(true);
-				name = name + ", reversed";
-			} else {
-				player.sendMessage("Only \"T\" or \"R\" is accepted after the name.");
+			if (anim.isPlaying()) {
+				player.sendMessage(p.getPrefix()
+						+ "That animation is already playing. You must wait for it to finish!");
 				return true;
 			}
+			long fps = 5L;
+			if (args.length == 4) {
+				try {
+					fps = Integer.parseInt(args[3]);
+					if (fps < 0 || fps > 20) {
+						player.sendMessage(p.getPrefix()
+								+ "FPS can only be a number 1-20");
+						return true;
+					}
+					fps = 20 / fps;
+				} catch (NumberFormatException e) {
+					player.sendMessage(p.getPrefix()
+							+ "FPS can only be a number 1-20");
+					return true;
+				}
+			}
+
+			if (args.length > 2) {
+				if (args[2].equalsIgnoreCase("T")) {
+					reversed = true;
+					name = name + ", reversed";
+				} else if (!args[2].equalsIgnoreCase("F")) {
+					player.sendMessage("Only T or F is accepted for the parameter [T, F]");
+					return true;
+				}
+			}
+
+			// if no extra parameters are given, reversed and fps are at
+			// defaults
+			anim.play(reversed, fps);
+
 			player.sendMessage(p.getPrefix() + "Starting animation " + name
 					+ "!");
 			return true;
@@ -302,15 +327,15 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private boolean playAndReset(String[] args, Player player){
+	private boolean playAndReset(String[] args, Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to play!");
 			return true;
-		} else if (args.length > 3) {
+		} else if (args.length > 4) {
 			player.sendMessage(p.getPrefix() + "Too many arguments!");
 			player.sendMessage(p.getPrefix()
-					+ "Usage: /ww play <animation name> [T, F] or use /ww play help for more info");
+					+ "Usage: /ww play <animation name> [T, F] [FPS] or use /ww play help for more info");
 			return true;
 		}
 
@@ -321,23 +346,51 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 					+ "Plays the named animation and then resets the stage to the first frame. The animation name is required.");
 			player.sendMessage(ChatColor.DARK_GREEN
 					+ "[T, F] is optional, T will cause the animation to be played in reverse. Defaults to F.");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "[FPS] is optional, defaults to 4 frames per second. Must be between 1 and 20 (inclusive). In order to specify a non default FPS you MUST choose T or F");
 			return true;
 		}
 		String name = args[1];
-
+		boolean reversed = false;
 		Animation anim = Animation.getAnimation(name);
 
 		if (anim != null) {
-			if (args.length == 2
-					|| (args.length == 3 && args[2].equalsIgnoreCase("F"))) {
-				anim.playAndReset(false);
-			} else if (args.length == 3 && args[2].equalsIgnoreCase("T")) {
-				anim.playAndReset(true);
-				name = name + ", reversed";
-			} else {
-				player.sendMessage("Only \"T\" or \"R\" is accepted after the name.");
+			if (anim.isPlaying()) {
+				player.sendMessage(p.getPrefix()
+						+ "That animation is already playing. You must wait for it to finish!");
 				return true;
 			}
+			long fps = 5L;
+			if (args.length == 4) {
+				try {
+					fps = Integer.parseInt(args[3]);
+					if (fps < 0 || fps > 20) {
+						player.sendMessage(p.getPrefix()
+								+ "FPS can only be a number 1-20");
+						return true;
+					}
+					fps = 20 / fps;
+				} catch (NumberFormatException e) {
+					player.sendMessage(p.getPrefix()
+							+ "FPS can only be a number 1-20");
+					return true;
+				}
+			}
+
+			if (args.length > 2) {
+				if (args[2].equalsIgnoreCase("T")) {
+					reversed = true;
+					name = name + ", reversed";
+				} else if (!args[2].equalsIgnoreCase("F")) {
+					player.sendMessage("Only T or F is accepted for the parameter [T, F]");
+					return true;
+				}
+			}
+
+			// if no extra parameters are given, reversed and fps are at
+			// defaults
+			anim.playAndReset(reversed, fps);
+
 			player.sendMessage(p.getPrefix() + "Starting animation " + name
 					+ "!");
 			return true;
@@ -348,12 +401,12 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private boolean playPrivate(String[] args, Player player){
+	private boolean playPrivate(String[] args, Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to play!");
 			return true;
-		} else if (args.length > 3) {
+		} else if (args.length > 4) {
 			player.sendMessage(p.getPrefix() + "Too many arguments!");
 			player.sendMessage(p.getPrefix()
 					+ "Usage: /ww playprivate <animation name> [T, F] or use /ww playprivate help for more info");
@@ -367,25 +420,47 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 					+ "Plays the named animation such that only the person who used the command will see the animation. The animation stage will resync with the server five (5) seonds after the animation is completed. The animation name is required.");
 			player.sendMessage(ChatColor.DARK_GREEN
 					+ "[T, F] is optional, T will cause the animation to be played in reverse. Defaults to F.");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "[FPS] is optional, defaults to 4 frames per second. Must be between 1 and 20 (inclusive). In order to specify a non default FPS you MUST choose T or F");
 			return true;
 		}
 		String name = args[1];
-
+		boolean reversed = false;
 		Animation anim = Animation.getAnimation(name);
 
 		if (anim != null) {
-			if (args.length == 2
-					|| (args.length == 3 && args[2].equalsIgnoreCase("F"))) {
-				anim.playprivate(player, false);
-			} else if (args.length == 3 && args[2].equalsIgnoreCase("T")) {
-				anim.playprivate(player, true);
-				name = name + ", reversed";
-			} else {
-				player.sendMessage("Only \"T\" or \"R\" is accepted after the name.");
-				return true;
+			long fps = 5L;
+			if (args.length == 4) {
+				try {
+					fps = Integer.parseInt(args[3]);
+					if (fps < 0 || fps > 20) {
+						player.sendMessage(p.getPrefix()
+								+ "FPS can only be a number 1-20");
+						return true;
+					}
+					fps = 20 / fps;
+				} catch (NumberFormatException e) {
+					player.sendMessage(p.getPrefix()
+							+ "FPS can only be a number 1-20");
+					return true;
+				}
 			}
-			player.sendMessage(p.getPrefix()
-					+ "Starting private animation " + name + "!");
+
+			if (args.length > 2) {
+				if (args[2].equalsIgnoreCase("T")) {
+					reversed = true;
+					name = name + ", reversed";
+				} else if (!args[2].equalsIgnoreCase("F")) {
+					player.sendMessage("Only T or F is accepted for the parameter [T, F]");
+					return true;
+				}
+			}
+
+			// if no extra parameters are given, reversed and fps are at
+			// defaults
+			anim.playprivate(player, reversed, fps);
+			player.sendMessage(p.getPrefix() + "Starting animation " + name
+					+ "!");
 			return true;
 		} else {
 			player.sendMessage(p.getPrefix() + "Animaiton " + name
@@ -394,7 +469,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private boolean list(String[] args, Player player){
+	private boolean list(String[] args, Player player) {
 		if (args.length > 1) {
 			if (args[1].equalsIgnoreCase("help")) {
 				player.sendMessage(p.getPrefix() + "List: /ww list");
@@ -420,8 +495,114 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		return true;
 	}
 
-	private boolean set(String[] args, Player player){
+	private boolean playLoop(String[] args, Player player){
+		if (args.length != 5) {
+			player.sendMessage(p.getPrefix()
+					+ "Incorrect number of arguments. Use /ww playLoop help to display the help message for this command");
+			return true;
+		}
+
+		if (args[1].equalsIgnoreCase("help")) {
+			player.sendMessage(p.getPrefix()
+					+ "Play: /ww play <animation name> [Reverse: (T, F)] [FPS] [Cycle:(T, F)]");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "Plays the named animation. The animation name is required.");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "<Reverse: (T, F)>: T will cause the animation to be played in reverse.");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "<FPS>: Must be between 1 and 20 (inclusive). 4 is the standard default value");
+			player.sendMessage(ChatColor.DARK_GREEN
+					+ "<Cycle: (T, F)>: T will cause the animation to be played in alternating directions, forward, then backward or backward then forward.");
+			return true;
+		}
+		String name = args[1];
+		boolean reversed;
+		boolean cycle;
+		long fps;
+		Animation anim = Animation.getAnimation(name);
+
+		if (anim != null) {
+			if (anim.isPlaying()) {
+				player.sendMessage(p.getPrefix()
+						+ "That animation is already playing. You must wait for it to finish or stop it first!");
+				return true;
+			}
+			
+			if(args[2].equalsIgnoreCase("T")){
+				reversed = true;
+				name = name + ", reversed";
+			} else if(args[2].equalsIgnoreCase("F")){
+				reversed = false;
+			} else {
+				player.sendMessage(p.getPrefix() + "Reversed parameter can only be T or F");
+				return true;
+			}
+			
+			try{
+				fps = Integer.parseInt(args[3]);
+				if(fps < 0 || fps > 20){
+					player.sendMessage(p.getPrefix() + "FPS must be between 1 and 20 (Inclusive)");
+					return true;
+				}
+				fps = 20/fps;
+			} catch (NumberFormatException e){
+				player.sendMessage(p.getPrefix() + "FPS can only be a number 1-20 (inclusive)");
+				return true;
+			}
+			
+			if(args[4].equalsIgnoreCase("T")){
+				cycle = true;
+			} else if(args[4].equalsIgnoreCase("F")){
+				cycle = false;
+			} else {
+				player.sendMessage(p.getPrefix() + "Cycle parameter can only be T or F");
+				return true;
+			}
+
+			// if no extra parameters are given, reversed and fps are at
+			// defaults
+			anim.playLoop(reversed, fps, cycle);
+
+			player.sendMessage(p.getPrefix() + "Starting animation " + name
+					+ "!");
+			return true;
+		} else {
+			player.sendMessage(p.getPrefix() + "Animaiton " + name
+					+ " not found. Did you spell it correctly?");
+			return true;
+		}
+	}
+
+	private boolean stop(String[] args, Player player){
+		if(args.length != 2){
+			player.sendMessage(p.getPrefix() + "Incorrect number of arguments, use /ww stop help");
+			return true;
+		}
 		
+		if(args[1].equalsIgnoreCase("help")){
+			player.sendMessage(p.getPrefix() + "/ww stop <Animation>");
+			player.sendMessage(ChatColor.DARK_GREEN + "Stops an animation dead in its tracks.");
+			player.sendMessage(ChatColor.DARK_GREEN + "Animation name is required.");
+			return true;
+		}
+		String name = args[1];
+		Animation anim = Animation.getAnimation(name);
+		
+		if(!anim.isPlaying()){
+			player.sendMessage(p.getPrefix() + "That animation is not currently playing");
+			return true;
+		} else if(anim.getPlayerTask() != null){
+			anim.stopPlaying();
+			player.sendMessage(p.getPrefix() + "Stopping " + name + ".");
+			return true;
+		} else {
+			player.sendMessage(p.getPrefix() + "That animation is not currently playing.");
+			return true;
+		}
+	}
+
+	private boolean set(String[] args, Player player) {
+
 		if (args.length < 3) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation and index to set!");
@@ -456,14 +637,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			}
 
 			if (index > 0 && index <= anim.getFrameCount()) {
-				player.sendMessage(p.getPrefix() + "Setting animation "
-						+ name + " to frame " + index + "!");
+				player.sendMessage(p.getPrefix() + "Setting animation " + name
+						+ " to frame " + index + "!");
 				anim.loadFrame(index - 1);
 				return true;
 			} else {
 				player.sendMessage(p.getPrefix()
-						+ "Index must be between 1 and "
-						+ anim.getFrameCount()
+						+ "Index must be between 1 and " + anim.getFrameCount()
 						+ " (inclusive) for animation " + name + "!");
 				return true;
 			}
@@ -474,8 +654,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 	}
-	
-	private boolean reset(String[] args, Player player){
+
+	private boolean reset(String[] args, Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to reset!");
@@ -500,8 +680,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		Animation anim = Animation.getAnimation(name);
 
 		if (anim != null) {
-			player.sendMessage(p.getPrefix() + "Resetting animation "
-					+ name + "!");
+			player.sendMessage(p.getPrefix() + "Resetting animation " + name
+					+ "!");
 			anim.reset();
 			return true;
 		} else {
@@ -511,7 +691,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 	}
 
-	private boolean delete(String[] args, final Player player){
+	private boolean delete(String[] args, final Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to delete!");
@@ -541,8 +721,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 					+ anim.getName() + " use /ww confirm " + anim.getName());
 			player.sendMessage(p.getPrefix()
 					+ "Ability to confirm will expire in 60 seconds.");
-			player.setMetadata("delAnim" + name, new FixedMetadataValue(p,
-					null));
+			player.setMetadata("delAnim" + name,
+					new FixedMetadataValue(p, null));
 			new BukkitRunnable() {
 
 				@Override
@@ -564,8 +744,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}
 
 	}
-	
-	private boolean confirm(String[] args, Player player){
+
+	private boolean confirm(String[] args, Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to confirm!");
@@ -616,9 +796,9 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 	}
-	
-	@SuppressWarnings({ "deprecation", "unused" })
-	private boolean frame(String[] args, Player player){
+
+	@SuppressWarnings({ "unused" })
+	private boolean frame(String[] args, Player player) {
 		if (args.length < 2) {
 			player.sendMessage(p.getPrefix()
 					+ "You must provide the name of the animation to frame!");
@@ -694,8 +874,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Location bottomFar = new Location(topFar.getWorld(), i,
 					bottomLeftFar.getBlockY(), bottomLeftFar.getBlockZ());
 			Location bottomNear = new Location(topFar.getWorld(), i,
-					bottomRightNear.getBlockY(),
-					bottomRightNear.getBlockZ());
+					bottomRightNear.getBlockY(), bottomRightNear.getBlockZ());
 
 			if (alternate) {
 				player.sendBlockChange(topFar, Material.WOOL, (byte) 15);
@@ -718,11 +897,9 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Location leftNear = new Location(topLeftFar.getWorld(),
 					topLeftNear.getBlockX(), i, topLeftNear.getBlockZ());
 			Location rightFar = new Location(leftFar.getWorld(),
-					bottomRightFar.getBlockX(), i,
-					bottomRightFar.getBlockZ());
+					bottomRightFar.getBlockX(), i, bottomRightFar.getBlockZ());
 			Location rightNear = new Location(leftFar.getWorld(),
-					bottomRightNear.getBlockX(), i,
-					bottomRightNear.getBlockZ());
+					bottomRightNear.getBlockX(), i, bottomRightNear.getBlockZ());
 
 			if (alternate) {
 				player.sendBlockChange(leftFar, Material.WOOL, (byte) 15);
@@ -745,17 +922,14 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			Location topLeft = new Location(topLeftFar.getWorld(),
 					topLeftFar.getBlockX(), topLeftNear.getBlockY(), i);
 			Location bottomRight = new Location(topRight.getWorld(),
-					bottomRightFar.getBlockX(), bottomLeftFar.getBlockY(),
-					i);
+					bottomRightFar.getBlockX(), bottomLeftFar.getBlockY(), i);
 			Location bottomLeft = new Location(topRight.getWorld(),
-					bottomLeftFar.getBlockX(), bottomRightNear.getBlockY(),
-					i);
+					bottomLeftFar.getBlockX(), bottomRightNear.getBlockY(), i);
 
 			if (alternate) {
 				player.sendBlockChange(topRight, Material.WOOL, (byte) 15);
 				player.sendBlockChange(topLeft, Material.WOOL, (byte) 15);
-				player.sendBlockChange(bottomRight, Material.WOOL,
-						(byte) 15);
+				player.sendBlockChange(bottomRight, Material.WOOL, (byte) 15);
 				player.sendBlockChange(bottomLeft, Material.WOOL, (byte) 15);
 				alternate = !alternate;
 			} else {
@@ -774,8 +948,8 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 	}
 
 	@SuppressWarnings("unused")
-	private boolean clearFrame(String[] args, final Player player){
-		
+	private boolean clearFrame(String[] args, final Player player) {
+
 		if (args.length > 1) {
 			if (args[1].equalsIgnoreCase("help")) {
 				player.sendMessage(p.getPrefix()
@@ -817,17 +991,15 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		player.sendMessage(p.getPrefix() + "Clearing Frame...");
 
 		new BukkitRunnable() {
-			@SuppressWarnings("deprecation")
-			@Override
+
 			public void run() {
 				File frame = new File(framesDirPath + File.separator + "-1");
-				TerrainManager tm = new TerrainManager(
-						WigglyWorlds.getWep(), world);
+				TerrainManager tm = new TerrainManager(WigglyWorlds.getWep(),
+						world);
 
-				LocalSession ls;
 				try {
-					ls = tm.getLocalSessionWithClipboard(frame);
-					CuboidClipboard clipboard = ls.getClipboard();
+					CuboidClipboard clipboard = tm
+							.getLocalSessionWithClipboard(frame);
 					int x = clipboard.getWidth();
 					int y = clipboard.getHeight();
 					int z = clipboard.getLength();
@@ -840,15 +1012,13 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 										origin.getBlockY() + y1,
 										origin.getBlockZ() + z1);
 								player.sendBlockChange(loc, loc.getBlock()
-										.getType(), loc.getBlock()
-										.getData());
+										.getType(), loc.getBlock().getData());
 							}
 						}
 					}
 
 				} catch (FilenameException | MaxChangedBlocksException
-						| EmptyClipboardException | DataException
-						| IOException e) {
+						| EmptyClipboardException | DataException | IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -856,7 +1026,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		}.runTaskLater(WigglyWorlds.getP(), 1);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label,
 			String[] args) {
@@ -869,9 +1039,10 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			sender.sendMessage("Wiggly Worlds commands are only avaible in game");
 			return true;
 		}
-		
-		if(!player.hasPermission("WigglyWorlds.use")){
-			player.sendMessage(ChatColor.RED + "You do not have permission to do that!");
+
+		if (!player.hasPermission("WigglyWorlds.use")) {
+			player.sendMessage(ChatColor.RED
+					+ "You do not have permission to do that!");
 			return true;
 		}
 
@@ -900,7 +1071,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		 **************************************/
 
 		if (args[0].equalsIgnoreCase("addFrame")) {
-			return addFrame(args, player);			
+			return addFrame(args, player);
 		}
 
 		/**************************************
@@ -924,7 +1095,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		 *************************************/
 
 		if (args[0].equalsIgnoreCase("play")) {
-			return play(args, player);			
+			return play(args, player);
 		}
 
 		/*****************************************
@@ -1032,10 +1203,35 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 			return clearFrame(args, player);
 		}
 		
+		/************************************************
+		 * 
+		 * 
+		 * PLAY LOOP
+		 * 
+		 * 
+		 ***********************************************/
+		
+		if(args[0].equalsIgnoreCase("playLoop")){
+			return playLoop(args, player);
+		}
+		
+		/***********************************************
+		 * 
+		 * 
+		 * STOP
+		 * 
+		 * 
+		 ***********************************************/
+		
+		if(args[0].equalsIgnoreCase("stop")){
+			return stop(args, player);
+		}
+
 		player.sendMessage(p.getPrefix() + "Use /ww to bring up the help page");
 		return true;
 	}
 
+	
 	private void sendHelpMessage(Player player) {
 		player.sendMessage(p.getPrefix() + "Commands:");
 		player.sendMessage(ChatColor.DARK_GREEN
@@ -1057,6 +1253,10 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww playPrivate <name> [T, F]: Plays the animation, but it is only visible to you");
 		player.sendMessage(ChatColor.DARK_GREEN
+				+ "/ww playLoop <name> [T, F]: Plays the animation on a loop.");
+		player.sendMessage(ChatColor.DARK_GREEN
+				+ "/ww stop <name>: Stops an animation dead in its tracks.");
+		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww set <name> <index>: Sets the animation stage to the specified index");
 		player.sendMessage(ChatColor.DARK_GREEN
 				+ "/ww reset <name>: Resets the animation stage to the state of the first frame");
@@ -1071,7 +1271,7 @@ public class WigglyWorldsCommandExecutor implements CommandExecutor {
 	public static Collection<? extends String> getCommands() {
 		List<String> commands = Arrays.asList("create", "addframe", "delframe",
 				"list", "play", "playandreset", "playprivate", "reset",
-				"delete", "confirm", "frame", "clearFrame");
+				"delete", "confirm", "frame", "clearframe", "playloop", "stop");
 		return commands;
 	}
 }

@@ -15,22 +15,26 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.FilenameException;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.data.DataException;
+import com.sk89q.worldedit.util.io.file.FilenameException;
 
+@SuppressWarnings("deprecation")
 public class Animation implements Serializable {
 
 	private static final long serialVersionUID = -716774894145227916L;
 	public static ArrayList<Animation> animations = new ArrayList<Animation>();
 
+	private  transient BukkitTask playerTask;
 	private LocationPack lp1, lp2;
 	private String name;
 	private int frameCount;
 	private boolean hasFrames;
+	private boolean isPlaying;
 	private String animDirPath;
 	private File animDir;
 	private transient WorldEditPlugin wep = WigglyWorlds.getWep();
@@ -132,7 +136,7 @@ public class Animation implements Serializable {
 		// New animations cannot be created if the directory already exists, so
 		// no need to test for existence
 		animDir.mkdir();
-
+		isPlaying = false;
 	}
 
 	/**
@@ -251,17 +255,19 @@ public class Animation implements Serializable {
 	 * Plays the animation once through, leaving blocks in the state of the
 	 * final frame
 	 */
-	public void play(boolean reversed) {
-		new PlayTask(frameCount, animDirPath, lp1.unpack().getWorld(), reversed)
-				.runTaskTimer(WigglyWorlds.getP(), 20, 5);
+	public void play(boolean reversed, long fps) {
+		isPlaying = true;
+		playerTask = new PlayTask(frameCount, animDirPath, lp1.unpack().getWorld(), reversed, this)
+				.runTaskTimer(WigglyWorlds.getP(), 20, fps);
 	}
 
 	/**
 	 * Plays the animation once through and resets to the 0 frame when complete
 	 */
-	public void playAndReset(boolean reversed) {
-		new PlayAndResetTask(frameCount, animDirPath, lp1.unpack().getWorld(),
-				reversed).runTaskTimer(WigglyWorlds.getP(), 20, 5);
+	public void playAndReset(boolean reversed, long fps) {
+		isPlaying = true;
+		playerTask = new PlayAndResetTask(frameCount, animDirPath, lp1.unpack().getWorld(),
+				reversed, this).runTaskTimer(WigglyWorlds.getP(), 20, fps);
 	}
 
 	/**
@@ -269,13 +275,22 @@ public class Animation implements Serializable {
 	 * @param player
 	 *            Player to play the animation for
 	 */
-	public void playprivate(Player player, boolean reversed) {
+	public void playprivate(Player player, boolean reversed, long fps) {
 		// TODO Auto-generated method stub
 		new PrivatePlayTask(frameCount, animDirPath, lp1.unpack()
 				.getWorld(), player, reversed).runTaskTimer(
-				WigglyWorlds.getP(), 20, 5);
+				WigglyWorlds.getP(), 20, fps);
 	}
 
+	/**
+	 * Plays the animation on a loop until stopped
+	 * @param reversed
+	 * @param fps
+	 */
+	public void playLoop(boolean reversed, long fps, boolean toggleRev){
+		isPlaying = true;
+		playerTask = new LoopPlayTask(frameCount, animDirPath, lp1.unpack().getWorld(), reversed, this, toggleRev).runTaskTimer(WigglyWorlds.getP(), 20, fps);
+	}
 	/**
 	 * resets stage to 0 frame
 	 */
@@ -329,6 +344,33 @@ public class Animation implements Serializable {
 	
 	public LocationPack getMaximumPoint(){
 		return lp2;
+	}
+
+	public boolean stopPlaying(){
+		if(isPlaying){
+			if(playerTask != null){
+				playerTask.cancel();
+				playerTask = null;
+				isPlaying = false;
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean isPlaying(){
+		return isPlaying;
+	}
+	
+	public BukkitTask getPlayerTask(){
+		return playerTask;
+	}
+	
+	public void setPlaying(Boolean playing){
+		isPlaying = playing;
 	}
 
 	public static Collection<? extends String> getAnimationNames() {

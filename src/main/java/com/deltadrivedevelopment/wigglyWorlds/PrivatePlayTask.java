@@ -11,18 +11,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.CuboidClipboard;
 import com.sk89q.worldedit.EmptyClipboardException;
-import com.sk89q.worldedit.FilenameException;
-import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.util.io.file.FilenameException;
 import com.sk89q.worldedit.MaxChangedBlocksException;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.blocks.BaseBlock;
 import com.sk89q.worldedit.data.DataException;
 
+@SuppressWarnings("deprecation")
 public class PrivatePlayTask extends BukkitRunnable {
 
 	private int counter = 0;
 	private int frames;
 	private String framesDirPath;
+	@SuppressWarnings("unused")
 	private TerrainManager tm;
 	private Player player;
 	private World world;
@@ -43,12 +44,11 @@ public class PrivatePlayTask extends BukkitRunnable {
 		tm = new TerrainManager(WigglyWorlds.getWep(), world);
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void run() {
 		boolean test;
 		if (!reverse) {
-			test = counter <= frames;
+			test = counter < frames;
 		} else {
 			test = counter >= frames;
 		}
@@ -56,9 +56,8 @@ public class PrivatePlayTask extends BukkitRunnable {
 		if (test) {
 			File frame = new File(framesDirPath + File.separator + counter);
 			try {
-				LocalSession localSession = tm
-						.getLocalSessionWithClipboard(frame);
-				CuboidClipboard clipboard = localSession.getClipboard();
+				TerrainManager tm = new TerrainManager(WigglyWorlds.getWep(), world);
+				CuboidClipboard clipboard = tm.getLocalSessionWithClipboard(frame);
 				int x = clipboard.getWidth();
 				int y = clipboard.getHeight();
 				int z = clipboard.getLength();
@@ -115,9 +114,8 @@ public class PrivatePlayTask extends BukkitRunnable {
 					TerrainManager tm = new TerrainManager(
 							WigglyWorlds.getWep(), world);
 					try {
-						LocalSession ls = tm
+						CuboidClipboard clipboard = tm
 								.getLocalSessionWithClipboard(frame);
-						CuboidClipboard clipboard = ls.getClipboard();
 						int x = clipboard.getWidth();
 						int y = clipboard.getHeight();
 						int z = clipboard.getLength();
